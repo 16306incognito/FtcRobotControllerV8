@@ -21,7 +21,7 @@ public class ConeDetectionPipeline extends CustomOpenCVPipeline {
 	private Scalar lowRed1 = new Scalar(0, 100, 20);
 	private Scalar highRed1 = new Scalar(10, 255, 255);
 
-	// upper boundary: Hue range (0-10)
+	// upper boundary: Hue range (160-179)
 	private Scalar lowRed2 = new Scalar(160, 100, 20);
 	private Scalar highRed2 = new Scalar(179, 255, 255);
 
@@ -44,12 +44,10 @@ public class ConeDetectionPipeline extends CustomOpenCVPipeline {
 
 		Core.add(hsv1, hsv2, combinedFiltered);
 
-		try {
-			Rect boundingBox = getBoundingBox(combinedFiltered);
+		Rect boundingBox = getBoundingBox(combinedFiltered);
+		if (boundingBox != null) {
 			Imgproc.rectangle(input, boundingBox, new Scalar(255, 0, 0));
-			// telemetry.addLine("box: " + boundingBox.toString());
-			// telemetry.update();
-		} catch (Exception e) {}
+		}
 		return input;
 	}
 
