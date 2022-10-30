@@ -294,6 +294,7 @@ public class AprilTagDetectionPipeline extends CustomOpenCVPipeline {
 			} else {
 				currentInstruction = Instruction.NONE;
 			}
+			// break if the current instruction is not NONE
 			if (currentInstruction != Instruction.NONE) {
 				break;
 			}
