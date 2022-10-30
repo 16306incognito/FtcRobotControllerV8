@@ -12,6 +12,11 @@ public class Camera {
 
 	public static final int CAMERA_WIDTH = 640;
 	public static final int CAMERA_HEIGHT = 360;
+	// lens intrinsics
+	public static final double FX = 578.272;
+	public static final double FY = 578.272;
+	public static final double CX = CAMERA_WIDTH / 2.0;
+	public static final double CY = CAMERA_HEIGHT / 2.0;
 
 	private Telemetry telemetry;
 	private HardwareMap hardwareMap;
@@ -41,12 +46,36 @@ public class Camera {
 	}
 
 	public void logData() {
-		telemetry.addLine("FPS: " + camera.getFps());
-		telemetry.addLine("MAX FPS: " + camera.getCurrentPipelineMaxFps());
-		telemetry.addLine("Frame Count: " + camera.getFrameCount());
-		telemetry.addLine("Overhead Time Ms: " + camera.getOverheadTimeMs());
-		telemetry.addLine("Pipeline Time Ms: " + camera.getPipelineTimeMs());
-		telemetry.addLine("Total Frame Time Ms: " + camera.getTotalFrameTimeMs());
+		telemetry.addLine("FPS: " + getFps());
+		telemetry.addLine("MAX FPS: " + getCurrentPipelineMaxFps());
+		telemetry.addLine("Frame Count: " + getFrameCount());
+		telemetry.addLine("Overhead Time Ms: " + getOverheadTimeMs());
+		telemetry.addLine("Pipeline Time Ms: " + getPipelineTimeMs());
+		telemetry.addLine("Total Frame Time Ms: " + getTotalFrameTimeMs());
 		telemetry.update();  // make it appear on driver station
+	}
+
+	public float getFps() {
+		return camera.getFps();
+	}
+
+	public int getCurrentPipelineMaxFps() {
+		return camera.getCurrentPipelineMaxFps();
+	}
+
+	public int getFrameCount() {
+		return camera.getFrameCount();
+	}
+
+	public int getOverheadTimeMs() {
+		return camera.getOverheadTimeMs();
+	}
+
+	public int getPipelineTimeMs() {
+		return camera.getPipelineTimeMs();
+	}
+
+	public int getTotalFrameTimeMs() {
+		return camera.getTotalFrameTimeMs();
 	}
 }
