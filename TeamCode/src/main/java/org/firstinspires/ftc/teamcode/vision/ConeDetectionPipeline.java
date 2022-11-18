@@ -25,12 +25,44 @@ public class ConeDetectionPipeline extends CustomOpenCVPipeline {
 	private Scalar lowRed2 = new Scalar(160, 100, 20);
 	private Scalar highRed2 = new Scalar(179, 255, 255);
 
+	private Scalar lowBlue = new Scalar(100, 150, 0);
+	private Scalar highBlue = new Scalar(140, 255, 255);
+
+	private Rect currentBoundingBox;
+
 	public ConeDetectionPipeline(Telemetry telemetry) {
 		super(telemetry);
 	}
 
 	@Override
 	public Mat processFrame(Mat input) {
+		filterRed(input);
+
+		currentBoundingBox = getBoundingBox(combinedFiltered);
+
+		// store list of contours
+		List<MatOfPoint> contours = new ArrayList<>();
+		Imgproc.findContours(combinedFiltered, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+		// check that there are contours
+		if (contours.size() == 0) {return input;}
+
+		Rect[] boundingRects = new Rect[contours.size()]; // store all possible bounding rects
+
+		// get the bounding rectangles
+		for (int i = 0; i < contours.size(); i++) {
+			boundingRects[i] = Imgproc.boundingRect(new MatOfPoint(contours.get(i)));
+			if (boundingRects[i].area() > 30*30) {
+			Imgproc.rectangle(input, boundingRects[i], new Scalar(255, 0, 0));
+		}}
+
+
+//		if (currentBoundingBox != null) {
+//			Imgproc.rectangle(input, currentBoundingBox, new Scalar(255, 0, 0));
+//		}
+		return input;
+	}
+
+	private void filterRed(Mat input) {
 		// convert input to HSV colors
 		// range of 0 - 180 for hue
 		Imgproc.cvtColor(input, hsv1, Imgproc.COLOR_RGB2HSV);
@@ -43,12 +75,16 @@ public class ConeDetectionPipeline extends CustomOpenCVPipeline {
 		Core.inRange(hsv2, lowRed2, highRed2, hsv2);
 
 		Core.add(hsv1, hsv2, combinedFiltered);
+	}
 
-		Rect boundingBox = getBoundingBox(combinedFiltered);
-		if (boundingBox != null) {
-			Imgproc.rectangle(input, boundingBox, new Scalar(255, 0, 0));
-		}
-		return input;
+	private void filterBlue(Mat input) {
+		// convert input to HSV colors
+		// range of 0 - 180 for hue
+		Imgproc.cvtColor(input, combinedFiltered, Imgproc.COLOR_RGB2HSV);
+
+		// filter the lower boundary with Hue ranges
+		// and convert to grayscale
+		Core.inRange(combinedFiltered, lowBlue, highBlue, combinedFiltered);
 	}
 
 	private Rect getBoundingBox(Mat in) {
@@ -72,5 +108,9 @@ public class ConeDetectionPipeline extends CustomOpenCVPipeline {
 			}
 		}
 		return max;
+	}
+
+	public Rect getCurrentBoundingBox() {
+		return currentBoundingBox;
 	}
 }
