@@ -8,7 +8,6 @@ public class SubSystemOpMode extends OpMode {
 	protected ArrayList<SubSystem> subSystems = new ArrayList<>();
 
 	public SubSystemOpMode() {
-		SubSystem.initSubSystems(telemetry, hardwareMap, gamepad1);
 	}
 
 	public void addSubSystem(SubSystem subSystem) {
@@ -17,6 +16,7 @@ public class SubSystemOpMode extends OpMode {
 
 	@Override
 	public void init() {
+		SubSystem.initSubSystems(telemetry, hardwareMap, gamepad1);
 		for (SubSystem subSystem : subSystems) {
 			subSystem.init();
 		}

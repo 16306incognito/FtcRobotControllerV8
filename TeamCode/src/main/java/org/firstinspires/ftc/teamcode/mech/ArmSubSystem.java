@@ -1,40 +1,57 @@
 package org.firstinspires.ftc.teamcode.mech;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystem.SubSystem;
 
 public class ArmSubSystem extends SubSystem {
 
-	private ElapsedTime runtime = new ElapsedTime();
-	private Servo clampServo = null;
 	private Servo armServo = null;
-	private DcMotor shaftMotor = null;
+	private Servo wristServo = null;
+	private Servo clawServo = null;
+
+	private static final double MIN_COUNTER = 0.3892;
+
+	private double armCounter = MIN_COUNTER;
+	private double wristCounter = 0.3892;
+
+	private static final double WRIST_MAX = 0.6468;
+	private static final double WRIST_MIN = 0.12765;
 
 	@Override
 	public void init() {
-		clampServo = hardwareMap.get(Servo.class, "Servo1");
-		armServo = hardwareMap.get(Servo.class, "Servo2");
-		shaftMotor = hardwareMap.get(DcMotor.class, "shaftMotor");
+		clawServo = hardwareMap.get(Servo.class, "Servo1");
+		armServo = hardwareMap.get(Servo.class, "Servo0");
+		wristServo = hardwareMap.get(Servo.class, "Servo2");
 	}
 
 	@Override
 	public void update() {
-		if (gamepad1.right_bumper) {
-			armServo.setPosition(70.0 / 300.0);
-//				clampServo.setPosition(70.0 / 300.0);
-		} else if (gamepad1.left_bumper) {
-			armServo.setPosition(0.0 / 300.0);
-//				clampServo.setPosition(0.0 / 300.0);
-		}
-//			clampServo.setPosition(-gamepad1.left_stick_y);
+		// arm servo
+		final double speed = 0.0005;
+		armCounter += speed * gamepad1.right_stick_y;
+//		if (counter < MIN_COUNTER) counter = MIN_COUNTER;
+		armServo.setPosition(armCounter);
 
-		double shaftPower = 0.5;
-		shaftMotor.setPower(shaftPower);
 
-		telemetry.addLine("Position: " + armServo.getPosition());
+		// wrist servo
+		wristCounter += speed * gamepad1.left_stick_y;
+		// clamp the wrist position
+		if (wristCounter < WRIST_MIN) wristCounter = WRIST_MIN;
+		else if (wristCounter > WRIST_MAX) wristCounter = WRIST_MAX;
+
+		wristServo.setPosition(wristCounter);
+		telemetry.addLine("wrist Servo: " + wristServo.getPosition());
 		telemetry.update();
+
+		// claw servo
+		// if pressed
+		if (gamepad1.a) {
+			if (clawServo.getPosition() < 35.0 / 300.0) {
+				clawServo.setPosition(70.0 / 300.0);
+			} else {
+				clawServo.setPosition(0.0 / 300.0);
+			}
+		}
 	}
 }
