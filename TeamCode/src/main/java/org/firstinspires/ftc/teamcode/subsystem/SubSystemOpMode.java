@@ -16,7 +16,7 @@ public class SubSystemOpMode extends OpMode {
 
 	@Override
 	public void init() {
-		SubSystem.initSubSystems(telemetry, hardwareMap, gamepad1);
+		SubSystem.initSubSystems(telemetry, hardwareMap, gamepad1, gamepad2);
 		for (SubSystem subSystem : subSystems) {
 			subSystem.init();
 		}
