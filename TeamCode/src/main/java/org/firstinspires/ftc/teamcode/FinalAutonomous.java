@@ -23,28 +23,74 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
 import org.firstinspires.ftc.teamcode.vision.Camera;
 
 @TeleOp
-public class AprilTagTest extends LinearOpMode {
+public class FinalAutonomous extends LinearOpMode {
 	private Camera camera;
 	private AprilTagDetectionPipeline aprilTagDetectionPipeline;
+
+	// motors
+	private DcMotor leftFrontDrive = null;
+	private DcMotor leftBackDrive = null;
+	private DcMotor rightFrontDrive = null;
+	private DcMotor rightBackDrive = null;
+
+	private boolean moving = false;
+
+	private boolean atEndPosition = false;
+
+	private void moveTo(AprilTagDetectionPipeline.Instruction instruction) {
+		// moving forward phase
+		
+		if (instruction == AprilTagDetectionPipeline.Instruction.ONE) {
+			// left
+
+		} else if (instruction == AprilTagDetectionPipeline.Instruction.TWO) {
+			// middle
+		} else {
+			// right
+		}
+	}
 
 	@Override
 	public void runOpMode() {
 		aprilTagDetectionPipeline = new AprilTagDetectionPipeline(telemetry, Camera.FX, Camera.FY, Camera.CX, Camera.CY);
 		camera = new Camera(telemetry, hardwareMap, "webcam1", aprilTagDetectionPipeline);
 
+		leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
+		leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
+		rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
+		rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+
+		leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+		leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+		rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+		rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+
 		waitForStart();
 		telemetry.setMsTransmissionInterval(50);
 
-		while (opModeIsActive()) {
-			aprilTagDetectionPipeline.updateInLoop();
-			AprilTagDetectionPipeline.Instruction instruction = aprilTagDetectionPipeline.getCurrentInstruction();
-			telemetry.addLine("Detected instruciton: " + instruction);
-			telemetry.update();
+		while (opModeIsActive() || !atEndPosition) {
+			if (!moving) {
+				aprilTagDetectionPipeline.updateInLoop();
+				AprilTagDetectionPipeline.Instruction instruction = aprilTagDetectionPipeline.getCurrentInstruction();
+
+				if (instruction != AprilTagDetectionPipeline.Instruction.NONE) {
+					moving = true;
+					moveTo(instruction);
+				}
+
+				telemetry.addLine("Detected instruction: " + instruction);
+				telemetry.update();
+			} else {
+				// when the bot is moving to the target position
+
+			}
+
 			sleep(20);
 		}
 	}
