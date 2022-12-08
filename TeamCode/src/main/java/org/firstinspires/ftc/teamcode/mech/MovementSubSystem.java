@@ -49,7 +49,7 @@ public class MovementSubSystem extends SubSystem {
 			}
 		}
 
-		double speedFactor = slowMode ? 0.5 : 1.0;
+		double speedFactor = slowMode ? 0.25 : 0.5;
 
 		double max;
 

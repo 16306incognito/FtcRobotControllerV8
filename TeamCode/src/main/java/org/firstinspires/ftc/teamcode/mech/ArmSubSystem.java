@@ -5,8 +5,27 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystem.SubSystem;
+import org.firstinspires.ftc.teamcode.util.MotorUtil;
 
 public class ArmSubSystem extends SubSystem {
+
+	private static class ArmLevelSetting {
+		// heighest
+		public static ArmLevelSetting LEVEL3 = new ArmLevelSetting(0.53, 0.28);
+		// middle
+		public static ArmLevelSetting LEVEL2 = new ArmLevelSetting(0.316, 0.375);
+		// lowest
+		public static ArmLevelSetting LEVEL1 = new ArmLevelSetting(0.141, 0.454);
+		public static ArmLevelSetting GROUND = new ArmLevelSetting(0.12765, 0.57089);
+
+		private double arm;
+		private double wrist;
+
+		private ArmLevelSetting(double wrist, double arm) {
+			this.wrist = wrist;
+			this.arm = arm;
+		}
+	}
 
 	// servo and motors
 	private Servo armServo = null;
@@ -18,11 +37,11 @@ public class ArmSubSystem extends SubSystem {
 	// arm
 	private static final double ARM_MIN_POS = 0.0328;
 	private static final double ARM_MAX_POS = 0.6;
-
+	// pre-determined arm position constants
 	private double armCounter = ARM_MIN_POS;
 
 	// wrist
-	private double wristCounter = 0.3892;
+	private double wristCounter = WRIST_MIN;
 	private static final double WRIST_MAX = 0.6468;
 	private static final double WRIST_MIN = 0.12765;
 
@@ -33,13 +52,7 @@ public class ArmSubSystem extends SubSystem {
 	// slow mode
 	private ElapsedTime slowModeTimer;
 	private static final double SLOW_TOGGLE_COOLDOWN = 0.3;
-	private boolean slowMode = false;
-
-	private double clamp(double a, double min, double max) {
-		if (a < min) return min;
-		if (a > max) return max;
-		return a;
-	}
+	private boolean slowMode = true;
 
 	@Override
 	public void init() {
@@ -70,17 +83,40 @@ public class ArmSubSystem extends SubSystem {
 		final double speedFactor = slowMode ? 1.0 : 2.0;
 
 		// arm servo
-		final double armSpeed = 0.0005 * speedFactor;
-		armCounter += armSpeed * gamepad1.right_stick_y;
-		armCounter = clamp(armCounter, ARM_MIN_POS, ARM_MAX_POS);
+		// position 1: the lowest
+		if (gamepad1.dpad_down) {
+			armCounter = ArmLevelSetting.LEVEL1.arm;
+			wristCounter = ArmLevelSetting.LEVEL1.wrist;
+		}  // position 2
+		else if (gamepad1.dpad_right) {
+			armCounter = ArmLevelSetting.LEVEL2.arm;
+			wristCounter = ArmLevelSetting.LEVEL2.wrist;
+		} // position 3
+		else if (gamepad1.dpad_up) {
+			armCounter = ArmLevelSetting.LEVEL3.arm;
+			wristCounter = ArmLevelSetting.LEVEL3.wrist;
+		} else if (gamepad1.dpad_left) {
+			armCounter = ArmLevelSetting.GROUND.arm;
+			wristCounter = ArmLevelSetting.GROUND.wrist;
+		}
+		// if none of the buttons are pressed
+		else {
+			final double armSpeed = 0.0005 * speedFactor;
+			armCounter += armSpeed * gamepad1.right_stick_y;
+			wristCounter -= armSpeed * gamepad1.right_stick_y * 2.0;
+			wristCounter = MotorUtil.clamp(wristCounter, WRIST_MIN, WRIST_MAX);
+			armCounter = MotorUtil.clamp(armCounter, ARM_MIN_POS, ARM_MAX_POS);
+		}
 		armServo.setPosition(armCounter);
+		wristServo.setPosition(wristCounter);
 
 		// wrist servo
-		final double wristSpeed = 0.001 * speedFactor;
-		wristCounter += wristSpeed * gamepad1.left_stick_y;
-		// clamp the wrist position
-		wristCounter = clamp(wristCounter, WRIST_MIN, WRIST_MAX);
-
+		if (gamepad1.left_stick_y != 0.0) {
+			final double wristSpeed = 0.001 * speedFactor;
+			wristCounter += wristSpeed * gamepad1.left_stick_y;
+			// clamp the wrist position
+			wristCounter = MotorUtil.clamp(wristCounter, WRIST_MIN, WRIST_MAX);
+		}
 		wristServo.setPosition(wristCounter);
 
 		// claw servo
@@ -107,5 +143,10 @@ public class ArmSubSystem extends SubSystem {
 		} else {
 			shaftMotor.setPower(0.0);
 		}
+
+		// debug
+		telemetry.addLine("Wrist Pos: " + wristServo.getPosition());
+		telemetry.addLine("Arm Pos: " + armServo.getPosition());
+		telemetry.update();
 	}
 }
