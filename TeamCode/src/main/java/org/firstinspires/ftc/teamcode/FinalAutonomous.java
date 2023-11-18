@@ -27,6 +27,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
@@ -48,7 +49,11 @@ public class FinalAutonomous extends LinearOpMode {
 	private DcMotor rightFrontDrive = null;
 	private DcMotor rightBackDrive = null;
 
-	private static final double FORWARD_DISTANCE = 30.0;
+	private Servo clawServo = null;
+	private Servo armServo = null;
+
+	/*before 30*/
+	private static final double FORWARD_DISTANCE = 28.0;
 	private static final double SIDE_DISTANCE = 18.0;
 
 	private AprilTagDetectionPipeline.Instruction instruction = AprilTagDetectionPipeline.Instruction.NONE;
@@ -93,6 +98,9 @@ public class FinalAutonomous extends LinearOpMode {
 		rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
 		rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
 
+		clawServo = hardwareMap.get(Servo.class, "Servo1");
+		armServo = hardwareMap.get(Servo.class, "Servo0");
+
 		leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
 		leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
 		rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -103,11 +111,13 @@ public class FinalAutonomous extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			if (phase == Phase.NONE) {
+				//clawServo.setPosition(0.0);
 				aprilTagDetectionPipeline.updateInLoop();
 				instruction = aprilTagDetectionPipeline.getCurrentInstruction();
 
 				if (instruction != AprilTagDetectionPipeline.Instruction.NONE) {
 					phase = Phase.FORWARD;
+					//armServo.setPosition(0.54);
 					forward();
 				}
 
@@ -116,6 +126,7 @@ public class FinalAutonomous extends LinearOpMode {
 			} else if (phase == Phase.FORWARD) {
 				// when the bot has finished moving forward, move to the side
 				if (leftBackDrive.getPower() == 0.0 && rightBackDrive.getPower() == 0.0 && leftFrontDrive.getPower() == 0.0 && rightFrontDrive.getPower() == 0.0) {
+					/*armServo.setPosition(0.6);*/
 					phase = Phase.SIDE;
 					side();
 				}

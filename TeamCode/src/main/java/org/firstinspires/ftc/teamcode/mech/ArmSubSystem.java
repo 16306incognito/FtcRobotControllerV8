@@ -18,6 +18,11 @@ public class ArmSubSystem extends SubSystem {
 		public static ArmLevelSetting LEVEL1 = new ArmLevelSetting(0.141, 0.454);
 		public static ArmLevelSetting GROUND = new ArmLevelSetting(0.12765, 0.57089);
 
+		public static ArmLevelSetting CONE_5 = new ArmLevelSetting(0.3112, 0.4731);
+		public static ArmLevelSetting CONE_4 = new ArmLevelSetting(0.3379, 0.4904);
+		public static ArmLevelSetting CONE_3 = new ArmLevelSetting(0.3098, 0.5045);
+		public static ArmLevelSetting CONE_2 = new ArmLevelSetting(0.2820, 0.5184);
+
 		private double arm;
 		private double wrist;
 
@@ -74,7 +79,7 @@ public class ArmSubSystem extends SubSystem {
 	@Override
 	public void update() {
 		// toggle slow mode
-		if (gamepad1.x) {
+		if (Math.abs(gamepad1.left_trigger) > 0.05) {
 			if (slowModeTimer.seconds() > SLOW_TOGGLE_COOLDOWN) {
 				slowMode = !slowMode;
 				slowModeTimer.reset();
@@ -83,6 +88,7 @@ public class ArmSubSystem extends SubSystem {
 		final double speedFactor = slowMode ? 1.0 : 2.0;
 
 		// arm servo
+		// set the position when stacking the cones
 		// position 1: the lowest
 		if (gamepad1.dpad_down) {
 			armCounter = ArmLevelSetting.LEVEL1.arm;
@@ -95,9 +101,27 @@ public class ArmSubSystem extends SubSystem {
 		else if (gamepad1.dpad_up) {
 			armCounter = ArmLevelSetting.LEVEL3.arm;
 			wristCounter = ArmLevelSetting.LEVEL3.wrist;
-		} else if (gamepad1.dpad_left) {
+		}
+		// set the position when grabbing the cones
+		else if (gamepad1.dpad_left) {
 			armCounter = ArmLevelSetting.GROUND.arm;
 			wristCounter = ArmLevelSetting.GROUND.wrist;
+		} // second lowest
+		else if (gamepad1.x) {
+			armCounter = ArmLevelSetting.CONE_2.arm;
+			wristCounter = ArmLevelSetting.CONE_2.wrist;
+		} // third lowest
+		else if (gamepad1.y) {
+			armCounter = ArmLevelSetting.CONE_3.arm;
+			wristCounter = ArmLevelSetting.CONE_3.wrist;
+		}  // fourth cone
+		else if (gamepad1.b) {
+			armCounter = ArmLevelSetting.CONE_4.arm;
+			wristCounter = ArmLevelSetting.CONE_4.wrist;
+		} // fifth/top cone
+		else if (gamepad1.a) {
+			armCounter = ArmLevelSetting.CONE_5.arm;
+			wristCounter = ArmLevelSetting.CONE_5.wrist;
 		}
 		// if none of the buttons are pressed
 		else {
@@ -120,8 +144,8 @@ public class ArmSubSystem extends SubSystem {
 		wristServo.setPosition(wristCounter);
 
 		// claw servo
-		// if pressed
-		if (gamepad1.a) {
+		// if trigger is toggled
+		if (Math.abs(gamepad1.right_trigger) > 0.05f) {
 			if (clawTimer.seconds() > CLAW_TOGGLE_COOLDOWN) {
 				if (clawServo.getPosition() < 35.0 / 300.0) {
 					clawServo.setPosition(70.0 / 300.0);
